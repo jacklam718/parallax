@@ -1,26 +1,27 @@
 import React from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View, Dimensions } from 'react-native';
 import { PREVIEW_HEIGHT, ROW_HEIGHT } from './constants';
 import Row from './Row';
 import data from './data';
 
+const deviceHeight = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0A212E',
-    paddingTop: 225
+    paddingTop: 230,
   },
+  background: {
+    height: deviceHeight - (PREVIEW_HEIGHT / 3),
+    backgroundColor: '#0A212E',
+  }
 });
 
 export default class App extends React.Component {
+  scrollRef = React.createRef();
   scrollY = new Animated.Value(0);
-
   state = {
     height: 0,
-  }
-
-  onScroll = e => {
-    // console.log(e.nativeEvent.contentOffset.y)
   }
 
   onLayout = e => {
@@ -29,42 +30,52 @@ export default class App extends React.Component {
     });
   };
 
+  scrollTo = (index) => {
+    this.scrollRef.current._component.scrollTo({
+      y: ROW_HEIGHT * index,
+      animated: true,
+    });
+  }
+
   render() {
     return (
-        <Animated.ScrollView
-          style={styles.container}
-          onLayout={this.onLayout}
-          showsVerticalScrollIndicator={false}
-          automaticallyAdjustContentInsets
-          bounces={false}
-          onScroll={Animated.event(
-            [
-              {
-                nativeEvent: {
-                  contentOffset: { y: this.scrollY },
-                },
-              },
-            ],
+      <Animated.ScrollView
+        ref={this.scrollRef}
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        automaticallyAdjustContentInsets
+        bounces={false}
+        snapToInterval={ROW_HEIGHT}
+        decelerationRate="fast"
+        scrollEventThrottle={1}
+        onLayout={this.onLayout}
+        onScroll={Animated.event(
+          [
             {
-              useNativeDriver: false,
-              listener: this.onScroll,
-            }
-          )}
-          snapToInterval={ROW_HEIGHT}
-          decelerationRate="fast"
-          scrollEventThrottle={1}
-        >
-          {data.map((item, index) => (
-            <Row
-              key={item.title}
-              scrollY={this.scrollY}
-              title={item.title}
-              image={item.image}
-              index={index}
-            />
-          ))}
-          <View style={{ height: 800, backgroundColor: '#0A212E' }}/>
-        </Animated.ScrollView>
+              nativeEvent: {
+                contentOffset: { y: this.scrollY },
+              },
+            },
+          ],
+          {
+            useNativeDriver: false,
+          }
+        )}
+      >
+        {data.map((item, index) => (
+          <Row
+            key={item.title}
+            scrollY={this.scrollY}
+            title={item.title}
+            image={item.image}
+            index={index}
+            onPress={() => {
+              this.scrollTo(index);
+            }}
+          />
+        ))}
+        <View style={styles.background}/>
+      </Animated.ScrollView>
     );
   }
 }

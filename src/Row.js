@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
 export default class Row extends React.PureComponent {
   static propTypes = {
     scrollY: PropTypes.any,
+    onPress: PropTypes.func,
     index: PropTypes.number,
     title: PropTypes.string.isRequired,
     image: PropTypes.string.isRequired,
@@ -55,20 +56,80 @@ export default class Row extends React.PureComponent {
     ROW_HEIGHT * this.props.index,
   ];
 
-  render() {
+  renderRow() {
     const { scrollY, image, title, index } = this.props;
-
     return (
-      <View style={styles.container}>
-        <Animated.View
+      <Animated.View
+        style={[
+          styles.preview,
+          {
+            transform: [
+              {
+                translateY: scrollY.interpolate({
+                  inputRange: this.inputRange,
+                  outputRange: [0, -PREVIEW_HEIGHT + ROW_HEIGHT],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <Animated.Image
+          source={{ uri: image }}
+          resizeMode="cover"
           style={[
-            styles.preview,
+            StyleSheet.absoluteFill,
             {
               transform: [
                 {
                   translateY: scrollY.interpolate({
                     inputRange: this.inputRange,
-                    outputRange: [0, -PREVIEW_HEIGHT + ROW_HEIGHT],
+                    outputRange: [-PREVIEW_HEIGHT / 16, 0],
+                    extrapolate: 'clamp',
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.previewOverlay,
+            {
+              opacity: scrollY.interpolate({
+                inputRange: this.inputRange,
+                outputRange: [0.45, 0.1],
+                extrapolate: 'clamp',
+              }),
+            },
+          ]}
+        />
+
+        <Animated.Text
+          style={[
+            styles.title,
+            {
+              fontSize: scrollY.interpolate({
+                inputRange: [
+                  ROW_HEIGHT * (index-1),
+                  ROW_HEIGHT * (index),
+                  ROW_HEIGHT * (index+1),
+                ],
+                outputRange: [18, 30, 18],
+                extrapolate: 'clamp',
+              }),
+            },
+            {
+              transform: [
+                {
+                  translateY: scrollY.interpolate({
+                    inputRange: [
+                      ROW_HEIGHT * (index-1),
+                      ROW_HEIGHT * (index),
+                      ROW_HEIGHT * (index+1),
+                    ],
+                    outputRange: [-ROW_HEIGHT , 0, -ROW_HEIGHT],
                     extrapolate: 'clamp',
                   }),
                 },
@@ -76,67 +137,22 @@ export default class Row extends React.PureComponent {
             },
           ]}
         >
-          <Animated.Image
-            source={{ uri: image }}
-            resizeMode="cover"
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                transform: [
-                  {
-                    translateY: scrollY.interpolate({
-                      inputRange: this.inputRange,
-                      outputRange: [-PREVIEW_HEIGHT / 16, 0],
-                      extrapolate: 'clamp',
-                    }),
-                  },
-                ],
-              },
-            ]}
-          />
-          <Animated.View
-            style={[
-              styles.previewOverlay,
-              {
-                opacity: scrollY.interpolate({
-                  inputRange: this.inputRange,
-                  outputRange: [0.4, 0.1],
-                  extrapolate: 'clamp',
-                }),
-              },
-            ]}
-          />
+          {title}
+        </Animated.Text>
+      </Animated.View>
+    );
+  }
 
-          <Animated.Text
-            style={[
-              styles.title,
-              {
-                fontSize: scrollY.interpolate({
-                  inputRange: this.inputRange,
-                  outputRange: [18, 30],
-                  extrapolate: 'clamp',
-                }),
-              },
-              {
-                transform: [
-                  {
-                    translateY: scrollY.interpolate({
-                      inputRange: [
-                        ROW_HEIGHT * (index-1),
-                        ROW_HEIGHT * (index),
-                      ],
-                      outputRange: [-ROW_HEIGHT , 0],
-                      extrapolate: 'clamp',
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            {title}
-          </Animated.Text>
-        </Animated.View>
-      </View>
+  render() {
+    const { onPress } = this.props;
+    return (
+      <TouchableOpacity
+        style={styles.container}
+        activeOpacity={1}
+        onPress={onPress}
+      >
+        {this.renderRow()}
+      </TouchableOpacity>
     );
   }
 }
