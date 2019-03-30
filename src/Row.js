@@ -1,13 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import {
-  Text,
-  View,
-  StyleSheet,
-  Animated,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import { Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { PREVIEW_HEIGHT, ROW_HEIGHT } from './constants';
 
 const styles = StyleSheet.create({
@@ -39,6 +32,7 @@ const styles = StyleSheet.create({
     fontFamily: 'AvenirNextCondensed-DemiBold',
     color: '#ffffff',
     alignSelf: 'center',
+    fontSize: 18,
   },
 });
 
@@ -51,11 +45,6 @@ export default class Row extends React.PureComponent {
     image: PropTypes.string.isRequired,
   };
 
-  inputRange = [
-    ROW_HEIGHT * (this.props.index-1),
-    ROW_HEIGHT * this.props.index,
-  ];
-
   renderRow() {
     const { scrollY, image, title, index } = this.props;
     return (
@@ -66,7 +55,7 @@ export default class Row extends React.PureComponent {
             transform: [
               {
                 translateY: scrollY.interpolate({
-                  inputRange: this.inputRange,
+                  inputRange: [ROW_HEIGHT * (index-1), ROW_HEIGHT * index],
                   outputRange: [0, -PREVIEW_HEIGHT + ROW_HEIGHT],
                   extrapolate: 'clamp',
                 }),
@@ -84,7 +73,7 @@ export default class Row extends React.PureComponent {
               transform: [
                 {
                   translateY: scrollY.interpolate({
-                    inputRange: this.inputRange,
+                    inputRange: [ROW_HEIGHT * (index-1), ROW_HEIGHT * index],
                     outputRange: [-PREVIEW_HEIGHT / 16, 0],
                     extrapolate: 'clamp',
                   }),
@@ -98,47 +87,45 @@ export default class Row extends React.PureComponent {
             styles.previewOverlay,
             {
               opacity: scrollY.interpolate({
-                inputRange: this.inputRange,
+                inputRange: [ROW_HEIGHT * (index-1), ROW_HEIGHT * index],
                 outputRange: [0.45, 0.1],
                 extrapolate: 'clamp',
               }),
             },
           ]}
         />
-
-        <Animated.Text
-          style={[
-            styles.title,
-            {
-              fontSize: scrollY.interpolate({
-                inputRange: [
-                  ROW_HEIGHT * (index-1),
-                  ROW_HEIGHT * (index),
-                  ROW_HEIGHT * (index+1),
-                ],
-                outputRange: [18, 30, 18],
-                extrapolate: 'clamp',
-              }),
-            },
-            {
-              transform: [
-                {
-                  translateY: scrollY.interpolate({
-                    inputRange: [
-                      ROW_HEIGHT * (index-1),
-                      ROW_HEIGHT * (index),
-                      ROW_HEIGHT * (index+1),
-                    ],
-                    outputRange: [-ROW_HEIGHT , 0, -ROW_HEIGHT],
-                    extrapolate: 'clamp',
-                  }),
-                },
-              ],
-            },
-          ]}
+        <Animated.View
+          style={{
+            transform: [
+              {
+                scale: scrollY.interpolate({
+                  inputRange: [
+                    ROW_HEIGHT * (index-1),
+                    ROW_HEIGHT * (index),
+                    ROW_HEIGHT * (index+1),
+                  ],
+                  outputRange: [1, 1.7, 1],
+                  extrapolate: 'clamp',
+                }),
+              },
+              {
+                translateY: scrollY.interpolate({
+                  inputRange: [
+                    ROW_HEIGHT * (index-1),
+                    ROW_HEIGHT * (index),
+                    ROW_HEIGHT * (index+1),
+                  ],
+                  outputRange: [-ROW_HEIGHT , 0, -ROW_HEIGHT],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ],
+          }}
         >
-          {title}
-        </Animated.Text>
+          <Animated.Text style={styles.title}>
+            {title}
+          </Animated.Text>
+        </Animated.View>
       </Animated.View>
     );
   }

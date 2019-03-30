@@ -1,15 +1,17 @@
 import React from 'react';
-import { Animated, StyleSheet, Text, View, Dimensions } from 'react-native';
+import { Animated, StyleSheet, Text, View, Dimensions, Platform } from 'react-native';
+import { Font } from 'expo';
 import { PREVIEW_HEIGHT, ROW_HEIGHT } from './constants';
 import Row from './Row';
 import data from './data';
 
+const isIOS = Platform.OS === 'ios';
 const deviceHeight = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#0A212E',
-    paddingTop: 230,
+    // flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: isIOS ? 0 : 230,
   },
   background: {
     height: deviceHeight - (PREVIEW_HEIGHT / 3),
@@ -22,6 +24,21 @@ export default class App extends React.Component {
   scrollY = new Animated.Value(0);
   state = {
     height: 0,
+  }
+
+  state = {  
+    assetLoaded: false,
+  }
+
+  componentDidMount() {
+    this.loadAssets();
+  }
+
+  async loadAssets() {
+    await Font.loadAsync({
+      'AvenirNextCondensed-DemiBold': require('../assets/fonts/AvenirNextCondensed-DemiBold.ttf'),
+    })
+    this.setState({ assetLoaded: true })
   }
 
   onLayout = e => {
@@ -37,11 +54,30 @@ export default class App extends React.Component {
     });
   }
 
+  renderContent() {
+    if (!this.state.assetLoaded) {
+      return null;
+    }
+    return data.map((item, index) => (
+      <Row
+        key={item.title}
+        scrollY={this.scrollY}
+        title={item.title}
+        image={item.image}
+        index={index}
+        onPress={() => {
+          this.scrollTo(index);
+        }}
+      />
+    ));
+  }
+
   render() {
     return (
       <Animated.ScrollView
         ref={this.scrollRef}
-        style={styles.container}
+        style={{ paddingTop: isIOS ? 230 : 0 }}
+        contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
         automaticallyAdjustContentInsets
         bounces={false}
@@ -58,22 +94,12 @@ export default class App extends React.Component {
             },
           ],
           {
-            useNativeDriver: false,
+            useNativeDriver: true,
+            listener: this.onScroll,
           }
         )}
       >
-        {data.map((item, index) => (
-          <Row
-            key={item.title}
-            scrollY={this.scrollY}
-            title={item.title}
-            image={item.image}
-            index={index}
-            onPress={() => {
-              this.scrollTo(index);
-            }}
-          />
-        ))}
+        {this.renderContent()}
         <View style={styles.background}/>
       </Animated.ScrollView>
     );
