@@ -1,6 +1,6 @@
 import React from 'react';
 import { Animated, StyleSheet, Text, View, Dimensions, Platform } from 'react-native';
-import { Font } from 'expo';
+import * as Font from 'expo-font';
 import { PREVIEW_HEIGHT, ROW_HEIGHT } from './constants';
 import Row from './Row';
 import data from './data';
@@ -35,10 +35,15 @@ export default class App extends React.Component {
   }
 
   async loadAssets() {
-    await Font.loadAsync({
-      'AvenirNextCondensed-DemiBold': require('../assets/fonts/AvenirNextCondensed-DemiBold.ttf'),
-    })
-    this.setState({ assetLoaded: true })
+    try {
+      // try to load AvenirNextCondensed-DemiBold font family anyway
+      await Font.loadAsync({
+        'AvenirNextCondensed-DemiBold': require('../assets/fonts/AvenirNextCondensed-DemiBold.ttf'),
+      })
+    } catch (error) {
+    } finally {
+      this.setState({ assetLoaded: true });
+    }
   }
 
   onLayout = e => {
